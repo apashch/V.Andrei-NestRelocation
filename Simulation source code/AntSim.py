@@ -1,3 +1,8 @@
+##########################################
+## The main simulation loop source code ##
+## (c) Artem Pashchinskiy, UCLA,  2019  ##
+##########################################
+
 from Arena import *
 from Ant import *
 from PostProcessor import *
@@ -10,6 +15,7 @@ import math
 import time, datetime
 import os
 
+# main simulation class
 class AntSim:
 	
 	def __init__(self, fieldType = 'c0d0', parameters = None, name = None):
@@ -33,10 +39,11 @@ class AntSim:
 		self.nest_transfer_data = None;
 		self.interactions_data = None;
 
-
 	def getID(self):
 		return self.simID
 
+	# allows to load parameters either from a pre-compiled dictionary file
+	# or one-by-one as a key-value pairs
 	def loadPars(self, filename = None, key = None, val = None):
 		pars = dict()
 
@@ -51,9 +58,12 @@ class AntSim:
 
 		return pars
 
+	# run the simulation loop
 	def run(self, drawing = False, recordcsv = True, recordinter = True, activation = True, bulk = True, saveinitialdist = False):
 
+		#### Setting up unitial configuration
 
+		# basic parameters
 		self.arena.reset(field = self.pars["ARENA"])
 		self.ants = [Ant(i, self, dir = math.radians(randint(0, 360))) for i in range(1, self.pars['NUM'] + 1)]
 		self.runcount += 1
@@ -61,29 +71,28 @@ class AntSim:
 		wallreact =  self.pars["WALL"]
 		maxiter = self.pars["MAXTRY"]	
 
-		# set up full-body mode
+		# for interactions (if interactions recodring is activated)
 		ant_length = self.pars["ANT_SIZE_X"]
 		ant_width = self.pars["ANT_SIZE_Y"]
+		leftend = self.arena.minX
+		rightend = self.arena.maxX
+		par_zeroX = leftend + (rightend - leftend)//self.pars["PARAB_ZERO"]
 
-
-		#### Setting up unitial configuration
-
-		# For ant transfer data
+		# for recording ant counts on heated and cold sides
 		left_array = list()
 		right_array = list()
 
-		# for csv recording
+		# for .csv recording of paths
 		if self.name == None:
 			csvpath = "results/{}".format(self.simID)
 		else:
 			csvpath = 'results/{}/{}'.format(self.name[0], self.name[1])
-
 		if recordcsv:
 			if not os.path.exists(csvpath):
 				os.makedirs(csvpath)
 			csv = open("{}/trajectories_{}.csv".format(csvpath, self.runcount), 'w')
 
-		#for drawing:
+		# for visual represenation of the paths (significantly reduces speed):
 		if drawing:
 			tr_fig, tr_ax = plt.subplots(1,1, figsize=(18, 12))
 			tr_ax.imshow(plt.imread(self.arena.arFile.split('.')[0]+".gif"))
@@ -93,15 +102,10 @@ class AntSim:
 			self.ys =[[] for _ in range(self.pars["NUM"])]
 			self.colors = list()
 
-		# for activation
-		leftend = self.arena.minX
-		rightend = self.arena.maxX
-		par_zeroX = leftend + (rightend - leftend)//self.pars["PARAB_ZERO"]
-
 		# calculate starting positions
 		starting_pos, starting_distr = self.arena.getStartPos(self.pars)
 
-		# initial set-up loop through all ants
+		# assign initial parameters to objects of class ant
 		for a in self.ants:
 			a.goto(starting_pos[a.getID()-1])
 			a.setTort(expovariate(self.pars['ANGLEEXPMEAN']))
@@ -113,7 +117,7 @@ class AntSim:
 				RGB_scaled = [x/255 for x in RGB]
 				self.colors.append(RGB_scaled)
 
-		# save initial positions plot if needed
+		# save initial positions plot
 		if saveinitialdist:
 
 			plt.figure('initial_dist_fig', figsize=(18,12))
@@ -131,11 +135,10 @@ class AntSim:
 			ax1.set_xlim(0, self.arena.dimX)
 			ax1.plot(x, starting_distr(x), color = 'r')
 			ax1.set_aspect(1/ax1.get_data_ratio()*0.14)
-			#ax1.set_yticklabels([0,'','','','', 0.000001]) #- for rs
-			#ax1.set_yticklabels([0,'','','','','','', 0.007]) #- for ls
-			ax1.set_yticklabels([0,'','','','','','', '', 0.0016]) #- for u
+			#ax1.set_yticklabels([0,'','','','', 0.000001]) # for rs
+			#ax1.set_yticklabels([0,'','','','','','', 0.007]) # for ls
+			ax1.set_yticklabels([0,'','','','','','', '', 0.0016]) # for u
 			ax1.set_xticklabels([])
-			
 			
 			if not os.path.exists("results/{}/initial_dist/".format(self.getID())):
 				os.makedirs("results/{}/initial_dist/".format(self.getID()))
@@ -143,12 +146,18 @@ class AntSim:
 			plt.close()
 
 
-		### main loop through iterations
+		###
+		#### MAIN LOOP BEGINNING
+		###
+
 		for i in range(self.pars['ITER']):
 			left_ants = 0
 			right_ants = 0
 
-			### main loop through ants inside iteration
+			##
+			### Loop through all ant objects on the arena 
+			##
+
 			for a in self.ants:
 
 				# record the position
@@ -156,7 +165,7 @@ class AntSim:
 					# format: time, antID, X, Y, state, excitment
 					csv.write("{0!s}, {1!s}, {2!s}, {3!s}, {4!s}, {5!s}\n".format(i, a.getID(), a.Xcor(), a.Ycor(), a.getstate(), a.getExcitment()))
 
-				# get step
+				# generate step size (BCS)
 				if activation:
 					if a.activated():
 						computed_step = a.get_step_with_bias('a', basicBias = self.pars["ACTIVATED_BIAS_PAR"])
@@ -166,22 +175,21 @@ class AntSim:
 						a.setstate('e') if eb else a.setstate('n')
 						#compute the actual step
 						computed_step = a.get_step_with_bias(bias_type, extraBias = eb)
-
 				else:
 					computed_step = a.get_step_with_bias(bias_type)
 
-				# get turning angle
+				# generate turning angle (dTheta)
 				delTeta = normalvariate(0,a.getTort())
 				NewDir = a.heading() + delTeta
 				a.turn(delTeta)
 
-				# calculate new coordnates
+				# generate a candidate for new coordnates (dP')
 				curX = a.Xcor()
 				curY = a.Ycor()
 				delX = int(round(computed_step*math.cos(NewDir)))
 				delY = int(round(computed_step*math.sin(NewDir)))
 
-				# adjust coordinate to prevent leaving the nest area by either changing length or the direction
+				# adjust coordinate to prevent leaving the nest area (deldir mode is used in the research)
 				if wallreact == 'delstep':
 					while ((self.arena.getFieldVal(curX + delX, curY + delY) != 255) and (abs(delX) > 0 or abs(delY) > 0)):
 						if abs(delX) > 0:
@@ -192,7 +200,6 @@ class AntSim:
 				elif wallreact == 'deldir':
 					counter =  0
 					while self.arena.getFieldVal(curX + delX, curY + delY) != 255 and counter < maxiter:
-						# get turning angle
 						delTeta = normalvariate(0,a.getTort())
 						NewDir = a.heading() + delTeta
 						a.turn(delTeta)
@@ -217,8 +224,7 @@ class AntSim:
 				body = self.arena.fillbodyspace(a.getID(), curX + delX, curY + delY, a.heading(), ant_length, ant_width)
 				self.arena.fillbodyspace(255, curX, curY, a.heading() - delTeta, ant_length, ant_width)
 
-
-				# collect nest transfer information
+				# collect information on conuts in hot and cold
 				if self.arena.Xmin() <= a.Xcor() <= self.arena.Xmid():
 					left_ants += 1
 				else:
@@ -237,7 +243,7 @@ class AntSim:
 						self.allInter_actstate.append(a.getstate())
 						self.allInter_recstate.append(self.ants[r-1].getstate())
 
-				# active/excited ants porcessing
+				# active/excited ants porcessing (if interactions are activated)
 				if activation:
 					if a.activated():
 						# excite all new neighbors
@@ -258,7 +264,7 @@ class AntSim:
 							if activation_chance == 1:
 								a.activate(delay = self.pars["DEACTIVATION_DELAY"])
 
-				# draw trajectories
+				# draw trajectories (if visual representation is requested)
 				if drawing:	
 					self.xs[a.getID()-1].append(a.Xcor())
 					self.ys[a.getID()-1].append(a.Ycor())
@@ -271,23 +277,27 @@ class AntSim:
 							pass
 						#plt.show()
 
-				### END OF ANTS LOOP
+				##
+				### End of wintin-iteration loop through ant objects
+				##
 
-			# process nest tranfer info
+
+			# process the hot/cold counts
 			left_array.append((i, left_ants))
 			right_array.append((i, right_ants))
 
-			# things you do once in a while (with certain frequency)
+			# keeping track of progress
 			if i % self.pars['SIMSPEED'] == 0:
 				if not bulk:
 					print("{0:.0f}% completed".format(i/self.pars['ITER']*100))
 
-			### END OF ITERATONS LOOP
+			###
+			#### END OF THE MAIN LOOP
+			###
 
 
 
-
-		# reset arena for next run. Note: interactions are still saved if the bulk mode is ON
+		# reset arena for next run; note: interactions are still saved if the bulk mode is ON
 		self.arena.reset(field = self.pars["ARENA"])
 		for a in self.ants:
 			del a
@@ -296,7 +306,7 @@ class AntSim:
 		if recordcsv:
 			csv.close()
 
-		# save nest transfer data
+		# save hot/cold counts data
 		left_array = np.array(left_array)
 		right_array = np.array(right_array)
 		self.nest_transfer_data = np.hstack((left_array, right_array))
@@ -308,20 +318,15 @@ class AntSim:
 			plt.close()
 
 
-
-
+### Another example of running the simulation
 if __name__ == "__main__":
 	MySim = AntSim(parameters = 'consts_dict.py')
-	#MySim.loadPars(key = 'BIAS_PAR', val = 2.0)
 	MySim.loadPars(key = 'ARENA', val = '2tun')
 	MySim.loadPars(key = 'INIT_DISTR', val = 'rs')
 	MySim.loadPars(key = 'ITER', val = 10000)
-	#MySim.loadPars(key = 'BIAS_C', val = 'h1')
 	PP = PostProcessor(MySim)
 
-
 	MySim.run(activation = False, recordinter = True, drawing = True, saveinitialdist = True, bulk = False)
-
 
 	PP.nest_transfer(MySim.nest_transfer_data, mode = 'one')
 	#PP.nest_transfer(MySim.nest_transfer_data, mode = 'process')
