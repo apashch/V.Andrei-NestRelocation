@@ -1,3 +1,16 @@
+#############################################
+##  A module allowing to parallelize the   ##
+##   series of nest transfer simulations   ##
+##   on the machines with multiple cores.  ##
+## Allows to test various parameter values ##
+##   on individual cores simultaneously    ##
+##   (c) Artem Pashchinskiy, UCLA,  2019   ##
+#############################################
+
+### Note 1: good solution to run bulk simulations on cloud-based systems
+### Note 2: does not speed up execution for runs where a single set of parameter
+### values is used and of course does not speed-up single run experiments
+
 from AntSim import *
 from multiprocessing import Pool, cpu_count, current_process
 from functools import partial
@@ -28,8 +41,6 @@ def run_trials(trials_num, parameter, name, value, trial_name):
 	with open ('results/{}/log.txt'.format(trial_name), 'a+') as log:
 		log.write('Processing of trial w/val {} took '.format(str(value)))
 		log.write(str(t_proc_end - t_proc_start)+"\n")
-
-
 
 def auxRunTrials(listParameters): 
 	return run_trials(listParameters[0], listParameters[1], listParameters[2], listParameters[3], listParameters[4])
@@ -62,12 +73,13 @@ def run_multiple_frontend(parname, parval, trials, trial_name = None):
 		log.write('For the last set it took \n {} seconds for npy processing\n {} deconds for csv processing\n'.format(str(t2 - t1),str(t_end - t2)))
 	print('Executed in {}'.format(str(t_end - t_start)))
 
+
+### Example of usage
+### we just modified the body of this main function and 
+### executed the resulting .py file on the remote multi-core machine
 if __name__ == '__main__':
 
 	parname = 'ARENA'
-	#parval  = (2, 5, 10, 15)
-	#parval = (3, 2, 2.5, 1.5, 4)
-	#parval = np.arange(2, 4, 0.5)
 	parval = [
 			 	'4o_2_4o',
 			 	'3o_2_3o',
@@ -76,16 +88,20 @@ if __name__ == '__main__':
 			 	'c1d1',
 			 	'2tun',
 			 ]
-
+	#parname = "BIAS_PAR"		 
+	#parval  = (2, 5, 10, 15)
+	#parval = np.arange(2, 4, 0.5)
 
 	trials = 50
-
 	t_total_start = time.time()
 
-	#for trials in [2, 5, 25, 100, 500]:
-	run_multiple_frontend(parname, parval, trials, 'for_spatial_activ3')
+	run_multiple_frontend(parname, parval, trials, 'testing_different_arenas')
 	#run_multiple_frontend(parname, parval, trials)
 
+
+	### I.e. to test convergence
+	#for trials in [2, 5, 25, 100, 500]:
+	#	run_multiple_frontend(parname, parval, trials)
 
 
 	print('All trial values executed in {}'.format(str(time.time() - t_total_start)))
