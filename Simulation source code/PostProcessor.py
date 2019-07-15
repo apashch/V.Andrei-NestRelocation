@@ -1,3 +1,11 @@
+#############################################
+##	   The PostProcessor class for the     ##
+##  nest transfer experiment suimulations  ##
+## allows to create visual representations ##
+##        of the simulation results        ##
+##   (c) Artem Pashchinskiy, UCLA,  2019   ##
+#############################################
+
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -12,10 +20,8 @@ from statistics import mean, stdev
 from math import sqrt
 import time
 
-
-
 class PostProcessor:
-
+	# this constructor expects an AntSim instance to be passed as parent
 	def __init__(self, parent, name = None):
 		self.parentSim = parent
 		self.timestamp = self.parentSim.getID()
@@ -37,12 +43,10 @@ class PostProcessor:
 		self.first_crossing_fig, self.fca = plt.subplots(1, 1)
 		self.first_crossing_fig.suptitle('First crossing time')
 		self.fca.set_ylim(0, self.parentSim.pars['ITER'])
-		
 
 		self.last_crossing_fig, self.lca = plt.subplots(1, 1)
 		self.last_crossing_fig.suptitle('Last crossing time')
 		self.lca.set_ylim(0, self.parentSim.pars['ITER'])
-		
 
 		self.num_crossings_fig, self.nca = plt.subplots(1, 1)
 		self.num_crossings_fig.suptitle('Nest transfer crossings count')
@@ -50,9 +54,6 @@ class PostProcessor:
 		self.final_num_fig, self.fna = plt.subplots(1, 1)
 		self.final_num_fig.suptitle('Final number of ants on the cooler side')
 		self.fna.set_ylim(0, self.parentSim.pars['NUM'])
-	
-
-
 
 	def add_subplot(self, fig):
 		if self.num_sets == 0:
@@ -64,23 +65,26 @@ class PostProcessor:
 			ax = fig.add_subplot(1, n+1, n+1)
 			return ax
 
-
+	### Creates subplots with a variety of relocation statistics
+	## (*)  Ran in the "one" mode, it produces plots based on a single simulation run
+	## (*)  If want to aggreagate data form multiple runs into a single plot, first
+	##		call nest_transfer in the "add" mode after each run and then call the "process" and "save"
+	## (*)	If want to to aggreagate data form multiple groups of runs (i.e. tets set of 3 parameter values with 5 runs per value),
+	##		call "add" after each run, "process" after each group of runs (i.e. when all trials uner the same parameter value are coimpleted)
+	##		and "save" after all groups of parameters are processed
 	def nest_transfer(self, nest_transfer_data, mode = 'one', name = "test", numtrials = 1):
 		trials_name = [name]
 		left = nest_transfer_data[:, :2]
 		right = nest_transfer_data[:, 2:]
 
 		if mode == 'one':
-			# show nest transfer data
 			plt.close()
 			plt.plot(left[:, 0],left[:, 1],'r') # plotting t,a separately 
 			plt.plot(right[:, 0], right[:, 1],'b') # plotting t,b separately
 			plt.savefig(self.foldername + "/nest_transfer_fig.png")
 			plt.close()
 
-
 		elif mode == 'add':
-
 			crossings = np.where(left[:, 1]==right[:, 1])[0]
 			crossings_counter = 0
 			crossings2 = np.append([0], crossings)
@@ -101,8 +105,7 @@ class PostProcessor:
 			ax.boxplot(self.num_crossings, labels = trials_name)
 			with open (self.foldername+"/crossings_count_file.csv", 'a') as ncf:
 				ncf.write(trials_name[0]+",")
-				ncf.write(get_writable_data(self.num_crossings, numtrials))
-				
+				ncf.write(get_writable_data(self.num_crossings, numtrials))	
 
 			ax = self.add_subplot(self.first_crossing_fig)
 			ax.set_ylim(0, self.parentSim.pars['ITER'])
@@ -143,12 +146,6 @@ class PostProcessor:
 			self.num_sets += 1
 
 		elif mode == 'save':
-			# when dynamically adding subplots the default one never gets filled so we don't need it
-			# self.num_crossings_fig.delaxes(self.num_crossings_fig.axes[0])
-			# self.first_crossing_fig.delaxes(self.first_crossing_fig.axes[0])
-			# self.last_crossing_fig.delaxes(self.last_crossing_fig.axes[0])
-			# self.final_num_fig.delaxes(self.final_num_fig.axes[0])
-
 			np.save(self.foldername + "/num_crossings.npy", self.num_crossings)
 			np.save(self.foldername + "/first_cross.npy", self.first_crossing_data)
 			np.save(self.foldername + "/last_cross.npy", self.last_crossing_data)
@@ -160,16 +157,10 @@ class PostProcessor:
 			self.final_num_fig.savefig(self.foldername + "/final_num.png")
 			plt.close()
 
-			# self.fnf.close()
-			# self.ncf.close()
-			# self.lcf.close()
-			# self.fcf.close()
-			#misc.bulk_nest_transfer(self.foldername)
-
-
-
-
+	### plot density of either interactions or trajectorjes (depending on mode)
 	def plot2dkernel(self, interactions_data = None, mode = 'inter'):
+		
+		# get raw data
 		if mode == "inter":
 			x = np.array(interactions_data[0])
 			y = np.array(interactions_data[1])
@@ -185,9 +176,6 @@ class PostProcessor:
 			x = x[1:]
 			y = y[1:]
 
-		#xmin, xmax = self.parentSim.arena.minX, self.parentSim.arena.maxX
-		#ymin, ymax = self.parentSim.arena.minY, self.parentSim.arena.maxY
-
 		xmin, xmax = 0, self.parentSim.arena.dimX
 		ymin, ymax = 0, self.parentSim.arena.dimY
 
@@ -196,11 +184,8 @@ class PostProcessor:
 		xx, yy = np.mgrid[xmin:xmax:50j, ymin:ymax:50j]
 		positions = np.vstack([xx.ravel(), yy.ravel()])
 		values = np.vstack([x, y])
-
 		kernel = st.gaussian_kde(values)
-
 		kernel.set_bandwidth(0.15)
-
 		f = np.reshape(kernel(positions).T, xx.shape)
 
 		fig = plt.figure()
@@ -216,14 +201,9 @@ class PostProcessor:
 		# Contour plot
 		cset = ax.contour(xx, yy, f, colors='k')
 
-		# Label plot
-		# ax.clabel(cset, inline=1, fontsize=10)
-		# ax.set_xlabel('Y1')
-		# ax.set_ylabel('Y0')
-
+		# add background image of the arena/field
 		arenaIm = plt.imread(self.parentSim.arena.arFile.replace(".npy", ".gif"))
 		ax.imshow(arenaIm)
-
 
 		# making plots looks pretty
 		ax.invert_yaxis()
@@ -240,6 +220,7 @@ class PostProcessor:
 			plt.savefig(self.foldername + "/traj_kernel_density_{}.png".format(self.parentSim.runcount))
 		plt.close()
 
+	# plot where interactions are hapenning (as individual dots)
 	def simple_interactions(self, interactions_data, mode = 'run'):
 		plt.figure("simple_interactions")
 		plt.imshow(plt.imread(self.parentSim.arena.arFile.split('.')[0]+".gif"))
@@ -247,13 +228,14 @@ class PostProcessor:
 		plt.savefig(self.foldername + "/simple_interactions{}.png".format(self.parentSim.runcount))
 		plt.close()
 
+	# log the parameter set used to run the specific simulation group
 	def parameters_dump(self, pars_dict, name = ''):
 		with open(self.foldername + "/" + name + "_pars.csv", "w") as csvfile:
 			w = csv.writer(csvfile)
 			for key, val in pars_dict.items():
 				w.writerow([key, val])
-			#TODO: record bias type, activation value and other things from sim.run() paramters
 
+	# move trajectories files to the folder with a specified trial name (housekeeping)
 	def relocate_traj(self, foldername, name):
 		newfolder = '{}/{}'.format(foldername, name)
 		if not os.path.exists(newfolder):
