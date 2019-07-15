@@ -1,3 +1,10 @@
+##########################################
+##  Ant class source code - everything  ##
+##  related to the state of individual  ##
+##  	agents lives in this class  	##
+##  (c) Artem Pashchinskiy, UCLA, 2019  ##
+##########################################
+
 import math
 from random import randint
 import numpy as np
@@ -14,7 +21,6 @@ class Ant:
 		self.excitment = 0
 		self.state = 'n'
 
-
 	def __repr__(self):
 		return "AntID="+str(self.id)
 
@@ -23,17 +29,17 @@ class Ant:
 			self.coords = x_or_tuple
 		else:
 			self.coords = (x_or_tuple, y)
+
+	def move(self, dx, dy):
+		newX = self.Xcor()+dx
+		newY = self.Ycor()+dy
+		self.goto(newX, newY)
 		
 	def Xcor(self):
 		return self.coords[0]
 
 	def Ycor(self):
 		return self.coords[1]
-
-	def move(self, dx, dy):
-		newX = self.Xcor()+dx
-		newY = self.Ycor()+dy
-		self.coords = (newX, newY)
 
 	def setheading(self, alpha):
 		self.dir = alpha
@@ -51,7 +57,7 @@ class Ant:
 	def position(self):
 		return (self.coords, self.dir)
 
-	# TURTLE LEGACY
+	# depreciatred functions; note: some of them are needed for processing interactions
 	def getTort(self):
 		return self.tort
 	def setTort(self, val):
@@ -89,13 +95,15 @@ class Ant:
 	def incrDeactivationDelay(self, incr = -1):
 		self.deactivationDelay = max(0, self.deactivationDelay + incr)
 
-
+	### rBCS computation
+	# this is the main piece of logic in the whole Ant class;
+	# computing step length based on the state of the agent, state of the field,
+	# and parameters of the simulation;
+	# this function returns a single value - the length of the rBCS displacement
 	def get_step_with_bias(self, biasType, basicBias = None, extraBias = 0):
-
 		leftend = self.parentSim.arena.minX
 		rightend = self.parentSim.arena.maxX
 		mid = (rightend + leftend) // 2
-		#originX = self.parentSim.pars["ORIGIN"][0]
 		originX = self.parentSim.arena.origin[0]
 		par_zeroX = leftend + (rightend - leftend)//self.parentSim.pars["PARAB_ZERO"]
 
@@ -113,18 +121,9 @@ class Ant:
 
 		step = np.random.gamma(shape = k, scale = theta)
 		bias_influence = np.random.uniform(0, step * biasVal)
-
-
-		if biasType == 'h1':
-			computed_step = step + bias_influence*self.heat_coefficent_calculation(self.Xcor(), self.Ycor(), 1.2*(originX-mid))
-
-		# this option gets rid of extra bias_influence parameter but requires some more thinking
-		elif biasType == 'h2':
-			computed_step = step*self.heat_coefficent_calculation(self.Xcor(), self.Ycor(), originX-mid)
-
-
+ 
 		# constant bias
-		elif biasType == 'c':
+		if biasType == 'c':
 			if (0 < self.heading() < math.pi/2) or (3 * math.pi / 2 < self.heading() <  2 * math.pi): 
 				# when oriented to the right 
 				computed_step = step - bias_influence
@@ -141,10 +140,9 @@ class Ant:
 		
 		# parabolic bias
 		elif biasType == 'p':
-			#delta = bias_influence * (((self.Xcor() - par_zeroX)/(originX - par_zeroX)) ** 2)
-			par_zeroX = leftend # (*)
+			par_zeroX = leftend # (*) zero of the parabola can be moved into the nest to prompt 
+								#return from the areas deep in the new nest
 			delta = bias_influence * (((self.Xcor() - leftend)/(originX - leftend)) ** 2)
-			#if (self.Xcor() > par_zeroX):
 			if (0 < self.heading() < math.pi/2) or (3 * math.pi / 2 < self.heading() <  2 * math.pi): 
 			# when oriented to the right 
 				computed_step = step - delta
@@ -159,6 +157,8 @@ class Ant:
 			# 	else:
 			# 		computed_step = step - delta
 
+
+		# activated behavior (recruitment)
 		elif biasType == 'a':
 		# constant preference towards right side
 			if (0 < self.heading() < math.pi/2) or (3 * math.pi / 2 < self.heading() <  2 * math.pi): 
@@ -168,18 +168,29 @@ class Ant:
 			# when oriented to the left 
 				computed_step = step - bias_influence
 
-		# if a "jump" is generated, reduce it to max possible step
+
+		##
+		### h1 and h2 are in the test mode and not documented properly
+		##
+		elif biasType == 'h1':
+			computed_step = step + bias_influence*self.heat_coefficent_calculation(self.Xcor(), self.Ycor(), 1.2*(originX-mid))
+
+		# this option gets rid of extra bias_influence parameter but requires some more thinking
+		elif biasType == 'h2':
+			computed_step = step*self.heat_coefficent_calculation(self.Xcor(), self.Ycor(), originX-mid)
+
+
+		# if a huge "jump" is generated, reduce it to maxstep (rBCS generation)
 		if abs(computed_step) > step_max:
 			computed_step = math.copysign(step_max, computed_step)
 
 		return computed_step
 
-
+	# heat coefficent is a different way to represent bias - it's still in the test mode
+	# only releveant for 'h1' bias type
 	def heat_coefficent_calculation(self, x, y, rad = 0):
 		if not rad:
 			rad = (self.parentSim.arena.minX + self.parentSim.arena.maxX) // 3
-
-
 		origin = self.parentSim.arena.origin
 		oX, oY = origin[0], origin[1]
 		dist = sqrt((x-oX)**2 + (y-oY)**2)
