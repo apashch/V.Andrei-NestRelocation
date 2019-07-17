@@ -58,7 +58,7 @@ class AntSim:
 
 		return pars
 
-	# run the simulation loop
+	# run the simulation loop; see README for deatailed info on parameters
 	def run(self, drawing = False, recordcsv = True, recordinter = True, activation = True, bulk = True, saveinitialdist = False):
 
 		#### Setting up unitial configuration
