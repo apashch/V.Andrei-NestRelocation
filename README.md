@@ -24,26 +24,26 @@ Simulation source code is split into multiple files.
 
 * [AntSim.py](./Simulation%20code/AntSim.py) - contains the main loop
 
-* Arena.py - contains the Arena class describing the state of the simulated nest (field)
-* Ant.py - contains the Ant class describing simulated agents
+* [Arena.py](./Simulation%20code/Arena.py) - contains the Arena class describing the state of the simulated nest (field)
+* [Ant.py](./Simulation%20code/Ant.py) - contains the Ant class describing simulated agents
 
 #### Additional files with the simulation logic
 
-* misc.py - small helper functions that dont fit into any of the tree components above
+* [misc.py](./Simulation%20code/misc.py) - small helper functions that dont fit into any of the tree components above
 
 #### Resources
 
-* raw_fields - folder with b/w contours of the used arenas (to add new arenas you need to put your file into the raw_fields folder and then run 'generate()' function from the Arena.py file on it. More instructions inside Arena.py as comments)
-* const_dict.py - a dictionary with default values of simulation parameters
+* [raw_fields](./Simulation%20resources/fields_raw/) - folder with b/w contours of the used arenas (to add new arenas you need to put your file into the raw_fields folder and then run 'generate()' function from the Arena.py file on it. More instructions inside Arena.py as comments)
+* [const_dict.py](./Simulation%20code/consts_dict.py) - a dictionary with default values of simulation parameters
 
 #### Graphical output
 
-* PostProcessor.py - contains several functions for converting raw simulation results into meaningful plots
+* [PostProcessor.py](./Simulation%20code/PostProcessor.py) - contains several functions for converting raw simulation results into meaningful plots
 
 #### Usability
 
-* MultiThreads.py - contains routines for parallelizing multi-simulatuons runs between multiple cores (still in beta)
-* Example.py and Example_minimal.py - show some of the simulation API in actions
+* [MultiThreads.py](./Simulation%20code/MultiThreads.py) - contains routines for parallelizing multi-simulatuons runs between multiple cores (still in beta)
+* [Example.py](./Simulation%20code/Example.py) and [Example_minimal.py](./Simulation%20code/Example_minimal.py) - show some of the simulation API in actions
 
 ## Output
 
@@ -79,11 +79,7 @@ Simulation source code is split into multiple files.
 
 ## Running simulations in bulk
 
-*Instructions on using the bulk mode and obtaining the correponding plots can be found in the block comment on the lines 68-74 of the [PostProcesor module](Simulation%20code/PostProcesor.py). A complete example of the corresponding API commands lives [here]("Simulation%20code/Exmaple.py"). There are two levels of bulk mode:*
-
-https://github.com/apashch/V.Andrei-NestRelocation/blob/master/simulation%20code/MultiThreads.py
-
-https://github.com/apashch/V.Andrei-NestRelocation/blob/master/Simulation%20code/MultiThreads.py
+*Instructions on using the bulk mode and obtaining the correponding plots can be found in the block comment on the lines 68-74 of the [PostProcesor module](./Simulation%20code/PostProcesor.py). A complete example of the corresponding API commands lives [here](./Simulation%20code/Exmaple.py). There are two levels of bulk mode:*
 
 ### 1. Many trials
 
@@ -127,7 +123,7 @@ Each of the four boxplot types described above, can be produced for more than on
 
   <img src="./Graphics for README/final_num_pars2.png" width=450px >
 
-Such large-scale experiments can take significant amount of time, so we suggest using [our parallelization tool](./simulation%20code/MultiThreads.py) to simulate each of the parameter values on a separate core.
+Such large-scale experiments can take significant amount of time, so we suggest using [our parallelization tool](./Simulation%20code/MultiThreads.py) to simulate each of the parameter values on a separate core.
 
 
 
