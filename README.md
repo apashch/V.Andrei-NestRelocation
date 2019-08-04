@@ -20,14 +20,14 @@ And here is an intuitive visual represnetation of how the bias works:
 
 Simulation source code is split into multiple files.
 
-#### Main files with simulation logic
+#### Main files containing the simulation logic
 
-* [AntSim.py]("Simulation%20code/AntSim.py") - contains the main loop
+* [AntSim.py](./Simulation%20code/AntSim.py) - contains the main loop
 
 * Arena.py - contains the Arena class describing the state of the simulated nest (field)
 * Ant.py - contains the Ant class describing simulated agents
 
-#### Additional files with simulation logic
+#### Additional files with the simulation logic
 
 * misc.py - small helper functions that dont fit into any of the tree components above
 
@@ -59,7 +59,7 @@ Simulation source code is split into multiple files.
 
   * turned OFF by default, to turn ON, set flag *drawing = True* when calling AntSim.run()
 
-  <img src="./Graphics for README/trajectiries.png" width=450px >
+  <img src="./Graphics for README/trajectories.png" width=450px >
 
 * initial positions visualisation + PDF of the used x-axis distrubution of initial positions
 
