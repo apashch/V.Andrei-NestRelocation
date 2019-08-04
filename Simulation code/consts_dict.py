@@ -8,8 +8,8 @@ from math import pi
 pars = {
 	#### General parameters
 	'ARENA' : 'c0d0',			# which configuration of the arena to use; see getTypeFile in Arena.py for details
-	'NUM' : 30, 				# the numer of ants in simulation
-	'ITER' : 15000,				# length of simulations in iterations
+	'NUM' : 15, 				# the numer of ants in simulation
+	'ITER' : 3000,				# length of simulations in iterations
 								# parametrization was based on frames in 30 fps videos
 								# which yields a conversion rate of 1800 iterations <-> 1 min real time 
 	'SIMSPEED' : 500,			# 1 / frequency of snapshots taken for trajectories - used only if trajectories are recorded

@@ -12,7 +12,7 @@ MySim = AntSim(parameters = 'consts_dict.py')
 PP = PostProcessor(MySim)
 
 #number of trials for each set of parameters
-trials = 5
+trials = 3
 
 # A minimal example of iteration with deafult parameters
 for k in range(trials):
