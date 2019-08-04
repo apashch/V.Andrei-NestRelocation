@@ -22,7 +22,7 @@ Simulation source code is split into multiple files.
 
 #### Main files with simulation logic
 
-* AntSim.py - contains the main loop
+* [AntSim.py]("Simulation%20code/AntSim.py") - contains the main loop
 
 * Arena.py - contains the Arena class describing the state of the simulated nest (field)
 * Ant.py - contains the Ant class describing simulated agents
@@ -61,15 +61,11 @@ Simulation source code is split into multiple files.
 
   <img src="./Graphics for README/trajectiries.png" width=450px >
 
-  ![trajectories_1](/Users/Artem/Documents/GitHub/AntSimLib/results/06192018_002426_9002/trajectories_1.png)
-
 * initial positions visualisation + PDF of the used x-axis distrubution of initial positions
 
   * turned OFF by default, to turn ON, set flag *saveinitialdist = True* when calling AntSim.run()
 
   <img src="./Graphics for README/initial.png" width=450px >
-
-  ![initial](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/initial.png)
 
 #### And here are some examples of what can be obtained using the PostProcessor module on top of the simulation:
 
@@ -77,17 +73,17 @@ Simulation source code is split into multiple files.
 
   <img src="./Graphics for README/trajectories_kde.png" width=450px >
 
-  ![trajectories_kde](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/trajectories_kde.png)
-
 * Timed counts of agents in hot and cold nests respectively (also known as *crossings plot*)
 
   <img src="./Graphics for README/crossings.png" width=450px >
 
-  ![crossings](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/crossings.png)
-
 ## Running simulations in bulk
 
-*Instructions on using the bulk mode and obtaining the correponding plots can be found in the block comment on the lines 68-74 of the [PostProcesor module](./Simulation%20code/PostProcesor.py). A complete example of the corresponding API commands lives [here](./Simulation%20code/Exmaple.py). There are two levels of bulk mode:*
+*Instructions on using the bulk mode and obtaining the correponding plots can be found in the block comment on the lines 68-74 of the [PostProcesor module](Simulation%20code/PostProcesor.py). A complete example of the corresponding API commands lives [here]("Simulation%20code/Exmaple.py"). There are two levels of bulk mode:*
+
+https://github.com/apashch/V.Andrei-NestRelocation/blob/master/simulation%20code/MultiThreads.py
+
+https://github.com/apashch/V.Andrei-NestRelocation/blob/master/Simulation%20code/MultiThreads.py
 
 ### 1. Many trials
 
@@ -96,38 +92,26 @@ Due to a stochastic nature of the simulation, results of the two indeendent runs
 * Boxplot of the first crossing time (the first time when half of the agents is in the heated nest and half is in the cold)
 
   <img src="./Graphics for README/first_trials.png" width=450px >
-
-  ![first_trials](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/first_trials.png)
   
 * Boxplot of the last crossing time (the last time when half of the agents is in the heated nest and half is in the cold)
 
   <img src="./Graphics for README/last_trials.png" width=450px >
-
-  ![last_trials](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/last_trials.png)
   
 * Boxplot of the total number of crossings (how many times during the simulation there was a 50/50 split between agents in the cold and the heated nests)
 
   <img src="./Graphics for README/numcrossings_trials.png" width=450px >
-
-  ![numcrossings_trials](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/numcrossings_trials.png)
   
 * Boxplot of how many agents were located in the cold nest at the end of the simulation
 
   <img src="./Graphics for README/finalnum_trials.png" width=450px >
   
-  ![finalnum_trials](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/finalnum_trials.png)
-  
 * Trajectories of the geometrical center of mass for all agents in the x-direction 
 
   <img src="./Graphics for README/cm.png" width=450px >
 
-  ![cm](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/cm.png)
-
 * Averaged density estimate of trajectories
 
   <img src="./Graphics for README/trajectories_kde.png" width=450px >
-
-  ![traj_kernel_density_50](/Users/Artem/Documents/GitHub/AntSimLib/results/GCloud-res/for_spatial_nosize-60/AR_2tun/traj_kernel_density_50.png)
 
 ### 2. Exploring a parameter space
 
@@ -139,13 +123,9 @@ Each of the four boxplot types described above, can be produced for more than on
 
   <img src="./Graphics for README/final_num_pars.png" width=450px >
 
-  ![final_num_pars](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/final_num_pars.png)
-
 * And here, how the heat implementation affects the final number of the relocated agents (spoiler: it does not)
 
   <img src="./Graphics for README/final_num_pars2.png" width=450px >
-
-  ![final_num_pars2](/Users/Artem/Documents/GitHub/V.Andrei-NestRelocation/Graphics for README/final_num_pars2.png)
 
 Such large-scale experiments can take significant amount of time, so we suggest using [our parallelization tool](./simulation%20code/MultiThreads.py) to simulate each of the parameter values on a separate core.
 
